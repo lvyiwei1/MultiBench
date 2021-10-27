@@ -8,7 +8,7 @@ from numpy.core.numeric import zeros_like
 from torch.nn.functional import pad
 from torch.nn import functional as F
 
-sys.path.append(os.path.dirname(os.path.dirname(os.getcwd())))
+sys.path.insert(1,os.getcwd())
 import torch
 import torchtext as text
 from collections import defaultdict
@@ -214,7 +214,7 @@ class Affectdataset(Dataset):
 def get_dataloader(
         filepath: str, batch_size: int = 32, max_seq_len=50, max_pad=False, train_shuffle: bool = True,
         num_workers: int = 2, flatten_time_series: bool = False, task=None, robust_test=True,
-        raw_path='/home/paul/MultiBench/mosi.hdf5') -> DataLoader:
+        raw_path='/home/paul/MultiBench/mosi.hdf5',no_robust=False) -> DataLoader:
     with open(filepath, "rb") as f:
         alldata = pickle.load(f)
 
@@ -234,9 +234,11 @@ def get_dataloader(
     valid = DataLoader(Affectdataset(processed_dataset['valid'], flatten_time_series, task=task, max_pad=max_pad, max_pad_num=max_seq_len), \
                        shuffle=False, num_workers=num_workers, batch_size=batch_size, \
                        collate_fn=process)
-    # test = DataLoader(Affectdataset(processed_dataset['test'], flatten_time_series, task=task), \
-    #                   shuffle=False, num_workers=num_workers, batch_size=batch_size, \
-    #                   collate_fn=process)
+    if no_robust:
+        test = DataLoader(Affectdataset(processed_dataset['test'], flatten_time_series, task=task), \
+                       shuffle=False, num_workers=num_workers, batch_size=batch_size, \
+                       collate_fn=process)
+        return train,valid,test
     if robust_test:
         vids = [id for id in alldata['test']['id']]
 
@@ -379,6 +381,35 @@ def process_2(inputs: List):
 
     return processed_input[0], processed_input[1], processed_input[2], torch.tensor(labels).view(len(inputs), 1)
 
+def to50(t):
+    if len(t)<50:
+        a=torch.zeros(50-len(t),len(t[0])).float()
+        #if len(t[0])==35:
+            #print(t)
+        return torch.cat([t,a],dim=0)
+    return t
+
+def simple_process(dataloader,shuffle):
+    modals=[]
+    for j in dataloader:
+        for i in range(len(j[3])):
+            lis=[to50(x) for x in [j[0][0][i],j[0][1][i],j[0][2][i]]]
+            #print(lis[1])
+            if(j[3][i].item()>=0):
+                lis.append(1)
+            else:
+                lis.append(0)
+            modals.append(lis)
+    return DataLoader(modals,shuffle=shuffle,num_workers=dataloader.num_workers, batch_size=dataloader.batch_size)
+
+def get_simple_processed_data(path,raw_path=None):
+    if raw_path is None:
+        trains,valids,tests=get_dataloader(path,robust_test=False)
+    else:
+        trains,valids,tests=get_dataloader(path,robust_test=False,raw_path=raw_path)
+    return simple_process(trains,True),simple_process(valids,False),simple_process(tests['all'][0],False)
+
+
 
 if __name__ == '__main__':
     traindata, validdata, test_robust = \
@@ -396,5 +427,4 @@ if __name__ == '__main__':
         # print(batch[1])
         # print(batch[-1])
         break
-
 

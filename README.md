@@ -8,7 +8,7 @@ Correspondence to:
   - [Paul Pu Liang](http://www.cs.cmu.edu/~pliang/) (pliang@cs.cmu.edu)
   - [Yiwei Lyu](https://github.com/lvyiwei1) (ylyu1@andrew.cmu.edu)
   - [Xiang Fan](https://github.com/sfanxiang) (xiangfan@cmu.edu)
-  - [Zetian Wu](http://neal-ztwu.github.io) (zwu49@jhu.edu)
+  - Zetian Wu (zwu49@jhu.edu)
   - Yun Cheng (yuncheng@andrew.cmu.edu)
   - [Jason Wu](https://jasonwunix.com/) (jsonwu@cmu.edu)
   - Leslie Chen (lesliechen1998@gmail.com)
@@ -38,7 +38,6 @@ To accompany MultiBench, we also provide a standardized implementation of 20 cor
 4. Finance: Stocks-food, Stocks-health, Stocks-tech
 5. HCI: ENRICO
 6. Multimedia: AV-MNIST, MM-IMDb, Kinetics-S, Kinetics-L
-7. RTFM env
 
 ![](/images/datasets.png)
 
@@ -70,9 +69,6 @@ To add a new algorithm:
 3. check that calling the added functions and running a simple training script works
 4. Make sure your new modules are well documented by comments in its input and output format and shapes
 
-## Open call for research areas, datasets, tasks, algorithms, and evaluation 
-
-We welcome new contributions to MultiBench through new research areas, datasets, tasks, algorithms, and evaluation. Please refer to the sections above for instructions on adding new datasets and algorithms, and open a pull request if you would like to see a specific dataset or algorithm added. We plan to use MultiBench as a theme for future workshops, competitions, and academic courses - stay tuned for upcoming calls for participation!
 
 ## Experiments
 
@@ -80,10 +76,10 @@ We welcome new contributions to MultiBench through new research areas, datasets,
 
 We release the processed datasets [here](https://drive.google.com/drive/folders/1IXZAjOEWFOGLxAK9JKvwlG2D9LThK6c5?usp=sharing). The raw datasets are also publicly available at [MultimodalSDK](https://github.com/A2Zadeh/CMU-MultimodalSDK) for MOSI and MOSEI, [MUsTARD](https://github.com/soujanyaporia/MUStARD) and [UR-Funny](https://github.com/ROC-HCI/UR-FUNNY). You can obtain processed data with `datasets/affect/get_data.py`, note that `sarcasm` means [MUsTARD](https://github.com/soujanyaporia/MUStARD) and `humor` means [UR-FUNNY](https://github.com/ROC-HCI/UR-FUNNY), please remember to use `regression` for MOSI and MOSEI `task` and `classcification` for MUsTARD and UR-FUNNY.
 
-There are several example scripts for running affect datasets under examples/affect/. For example, to run affect datasets with simple late fusion, do
+There are several example scripts for running affect datasets under examples/affect/. For example, to run UR-Funny with simple late fusion, do
 
 ```
-python3 examples/affect/affect_late_fusion.py
+python3 examples/affect/humor_late_fusion.py
 ```
 
 ### Healthcare
@@ -184,7 +180,7 @@ There are several example scripts for running AV-MNIST under examples/multimedia
 python examples/multimedia/avmnist_simple_late_fusion.py
 ```
 
-To access MM-IMDb, download the multimodal_imdb.hdf5 from [here](https://archive.org/download/mmimdb/multimodal_imdb.hdf5) and we also use the raw data from [here](https://archive.org/download/mmimdb/mmimdb.tar.gz) to test models' robustness. 
+To access MM-IMDb, download the multimodal_imdb.hdf5 from [here](http://lisi1.unal.edu.co/mmimdb/multimodal_imdb.hdf5) and we also use the raw data from [here](http://lisi1.unal.edu.co/mmimdb/mmimdb.tar.gz) to test models' robustness. 
 
 There are several example scripts for running MM-IMDb under examples/multimedia/. To run experiments, input the location of the hdf5 file to the get_dataloader function in each of the examples. Then, taking Text and Image with Simple Late Fusion with Concatenation for example, do 
 ```
@@ -192,9 +188,6 @@ python examples/multimedia/mmimdb_simple_late_fusion.py
 ```
 
 Scripts for the Kinetics dataset are located in the `special` directory. Run `python special/kinetics_*.py` for the respective script.
-
-To access Clotho, clone the [clotho-dataset](https://github.com/audio-captioning/clotho-dataset) repository somewhere on your device and follow the instructions in the ReadMe of that repository to download and preprocess the data (use the one-step preprocess approach). To get the dataloader, input the path to the "clotho-dataset" repo to the get_dataloaders function in datasets/clotho/get_data.py script. The default data are audio features (padded to 2574x64) and text caption word indices (padded to 20x18).
-
 
 ## Evaluation
 
@@ -217,6 +210,5 @@ We visualize the experiment results using two metrics, relative and effective ro
 
 ## Patch Note / Major Updates
 
-6/11/2021: Refactored some code. Specifically, we deprecated the Simple_Early_Fusion, Simple_Late_Fusion, MVAE, MFM, CCA, Contrastive training structures with the new `Supervised_Learning` training structure, and modified some `examples/` files accordingly. We also integrated the dataloaders and testing scripts for robustness experiments into the regular ones. The deprecated training structures as well as their examples can be found in `deprecated_training_structures/` and `deprecated_examples/` folders. The deprecated dataloaders and testing scripts specifically for robustness can be found in `deprecated_dataloaders/` and `deprecated_examples_robust/` folders.
+6/11/2021: Refactored some code. Specifically, we deprecated the Simple_Early_Fusion, Simple_Late_Fusion, MVAE, MFM, CCA, Contrastive training structures with the new `Supervised_Learning` training structure, and modified some `examples/` files accordingly. We also integrated the dataloaders and testing scripts for robustness experiments into the regular ones. The deprecated training structures as well as their examples can be found in `deprecated_training_structures/` and `deprecated_examples/` folders. The deprecated dataloaders and testing scripts specifically for robustness can be found in `deprecated_dataloaders/` and `deprecated_examples_robust/` folders
 
-7/9/2021: Added support for Clotho (audio captioning), Yummly-28K (image-text retrieval), RTFM (language-guided reinforcement learning). We plan to use this as a starting point to gradually expand our repo to include QA, retrieval, generative, and RL tasks as well.

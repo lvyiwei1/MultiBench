@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 #data dir is the avmnist folder
-def get_dataloader(data_dir,batch_size=40,num_workers=8,train_shuffle=True,flatten_audio=False,flatten_image=False,unsqueeze_channel=True,generate_sample=False,normalize_image=True,normalize_audio=True):
+def get_dataloader(data_dir,batch_size=40,num_workers=8,train_shuffle=True,flatten_audio=False,flatten_image=False,unsqueeze_channel=True,generate_sample=False,normalize_image=True,normalize_audio=True,no_robust=False):
     trains=[np.load(data_dir+"/image/train_data.npy"),np.load(data_dir+"/audio/train_data.npy"),np.load(data_dir+"/train_labels.npy")]
     tests=[np.load(data_dir+"/image/test_data.npy"),np.load(data_dir+"/audio/test_data.npy"),np.load(data_dir+"/test_labels.npy")]
     if flatten_audio:

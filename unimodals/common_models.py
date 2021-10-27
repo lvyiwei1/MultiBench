@@ -14,6 +14,29 @@ class Linear(torch.nn.Module):
     def forward(self,x,training=False):
         return self.fc(x)
 
+class LinearWF(torch.nn.Module):
+    def __init__(self,indim,outdim,flatten=False):
+        super(LinearWF, self).__init__()
+        self.flatten=flatten
+        self.fc = nn.Linear(indim,outdim)
+    def forward(self,x,training=False):
+        if self.flatten:
+            return self.fc(torch.flatten(x,start_dim=1))
+        return self.fc(x)
+
+class LinearSoftmax(torch.nn.Module):
+    def __init__(self,indim,outdim):
+        super(LinearSoftmax, self).__init__()
+        self.fc = nn.Linear(indim,outdim)
+    def forward(self,x,training=False):
+        return F.softmax(self.fc(x),dim=1)
+
+class Log(torch.nn.Module):
+    def __init__(self):
+        super(Log,self).__init__()
+    def forward(self,x,training=False):
+        return torch.log(x)
+
 # One layer linear with initialized weights
 class Linear_inited(torch.nn.Module):
     def __init__(self,indim,outdim):
@@ -87,30 +110,39 @@ class MLP(torch.nn.Module):
 
 # Wrapper for GRU
 class GRU(torch.nn.Module):
-    def __init__(self,indim,hiddim,dropout=False,dropoutp=0.1,flatten=False,has_padding=False,batch_first=False):
+    def __init__(self,indim,hiddim,dropout=False,dropoutp=0.1,flatten=False,has_padding=False,last_only=False):
         super(GRU,self).__init__()
-        self.gru=nn.GRU(indim,hiddim,batch_first=batch_first)
+        self.gru=nn.GRU(indim,hiddim,batch_first=True)
         self.dropoutp=dropoutp
         self.dropout=dropout
         self.flatten=flatten
         self.has_padding=has_padding
+        self.last_only=last_only
     def forward(self,x,training=True):
+        #print(x.size())
         if self.has_padding:
             x = pack_padded_sequence(x[0],x[1],batch_first=True,enforce_sorted=False)
             out=self.gru(x)[1][-1]
+        elif self.last_only:
+            out= self.gru(x)[1][0]
+            #print(out.size())
+            #print(out)
+            return out
         else:
-            out=self.gru(x)[0]
+            out,l=self.gru(x)
+            print(l.size())
         if self.dropout:
             out = F.dropout(out,p=self.dropoutp,training=training)
         if self.flatten:
             out=torch.flatten(out,1)
+        #print(out)
         return out
 
 # GRU unit followed by a linear layer
 class GRUWithLinear(torch.nn.Module):
-    def __init__(self,indim,hiddim,outdim,dropout=False,dropoutp=0.1,flatten=False,has_padding=False,output_each_layer=False,batch_first=False):
+    def __init__(self,indim,hiddim,outdim,dropout=False,dropoutp=0.1,flatten=False,has_padding=False,output_each_layer=False):
         super(GRUWithLinear,self).__init__()
-        self.gru=nn.GRU(indim,hiddim,batch_first=batch_first)
+        self.gru=nn.GRU(indim,hiddim)
         self.linear = nn.Linear(hiddim,outdim)
         self.dropoutp=dropoutp
         self.dropout=dropout
@@ -257,7 +289,11 @@ class LeNet(nn.Module):
                 return [t.squeeze() for t in tempouts]
             return tempouts
         if self.sq_out:
-            return out.squeeze()
+            a = out.squeeze()
+            if len(a.size())>1:
+                return a
+            else:
+                return a.unsqueeze(0)
         return out
 
 
@@ -559,19 +595,3 @@ class ResNetLSTMEnc(torch.nn.Module):
         if self.dropout:
             hidden = F.dropout(hidden,p=self.dropoutp,training=training)
         return hidden
-
-
-class Transformer(nn.Module):
-
-    def __init__(self, n_features, dim):
-        super().__init__()
-        self.embed_dim = dim
-        self.conv = nn.Conv1d(n_features, self.embed_dim, kernel_size=1, padding=0, bias=False)
-        layer = nn.TransformerEncoderLayer(d_model=self.embed_dim, nhead=5)
-        self.transformer = nn.TransformerEncoder(layer, num_layers=5)
-
-    def forward(self, x, training=True):
-        x = self.conv(x.permute([0, 2, 1]))
-        x = x.permute([2, 0, 1])
-        x = self.transformer(x)[-1]
-        return x

@@ -25,6 +25,19 @@ class ConcatEarly(nn.Module):
     def forward(self, modalities, training=False):
         return torch.cat(modalities, dim=2)
 
+# adding the tensors
+class Add(nn.Module):
+    def __init__(self,avg=False):
+        super(Add,self).__init__()
+        self.avg=avg
+    def forward(self,modalities,training=False):
+        out=modalities[0]
+        for i in range(len(modalities-1)):
+            out += modalities[i+1]
+        if self.avg:
+            return out / len(modalities)
+        return out
+
 
 # Stacking modalities
 class Stack(nn.Module):
@@ -157,6 +170,7 @@ class MultiplicativeInteractions2Modal(nn.Module):
             m2 = modalities[0]
 
         if self.flatten:
+            #print(m1)
             m1 = torch.flatten(m1, start_dim=1)
             m2 = torch.flatten(m2, start_dim=1)
         if self.clip is not None:

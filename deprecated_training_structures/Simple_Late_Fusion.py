@@ -52,7 +52,11 @@ def train(
         totalloss2 = 0.0
         totals = 0
         model.train()
+        countj=0
         for j in train_dataloader:
+            countj += 1
+            if countj % 100 == 0:
+                print("count"+str(countj))
             #print([i for i in j[:-1]])
             op.zero_grad()
             if is_packed:

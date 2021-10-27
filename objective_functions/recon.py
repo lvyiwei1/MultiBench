@@ -73,7 +73,6 @@ def recon_weighted_sum(modal_loss_funcs,weights):
     def actualfunc(recons,origs):
         totalloss=0.0
         for i in range(len(recons)):
-            trg = origs[i].view(recons[i].shape[0], recons[i].shape[1]) if len(recons[i].shape) != len(origs[i].shape) else origs[i]
-            totalloss += modal_loss_funcs[i](recons[i],trg)*weights[i]
+            totalloss += modal_loss_funcs[i](recons[i],origs[i])*weights[i]
         return torch.mean(totalloss)
     return actualfunc

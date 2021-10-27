@@ -169,6 +169,7 @@ class Searchable(nn.Module):
                 out = self.fusion_layers[layer](fused)
             else:
                 aout.append(out)
+                #print(aout)
                 fused = torch.cat(aout,1)
                 out = self.fusion_layers[layer](fused)
         out = self.head(out)

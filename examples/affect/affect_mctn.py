@@ -15,7 +15,7 @@ from private_test_scripts.all_in_one import all_in_one_train
 
 # mosi_raw.pkl, mosei_raw.pkl, sarcasm.pkl, humor.pkl
 traindata, validdata, test_robust = \
-    get_dataloader('/home/paul/MultiBench/mosi_raw.pkl', robust_test=True)
+    get_dataloader('/home/pliang/multibench/affect/processed/mosi_raw.pkl')
 
 max_seq = 20
 feature_dim = 300
@@ -43,10 +43,12 @@ def trainprocess():
         mu_t0=0.01, mu_c=0.01, mu_t1=0.01,
         dropout_p=0.15, early_stop=False, patience_num=15,
         lr=1e-4, weight_decay=0.01, op_type=torch.optim.AdamW,
-        epoch=200, model_save='best_mctn.pt')
+        epoch=10, model_save='best_mctn.pt')
+
 
 all_in_one_train(trainprocess, allmodules)
 
 model = torch.load('best_mctn.pt').cuda()
 
-test(model, test_robust, 'mosi')
+test(model, test_robust, max_seq_len=20)
+

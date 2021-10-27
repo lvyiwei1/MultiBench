@@ -19,10 +19,13 @@ softmax = nn.Softmax()
 # save_head: the name of the saved file for the head model with current best validation performance
 # modalnum: which modality to use (if the input contains multiple modalities and you only want to use one, put the index of the modality you want to use here. put 0 otherwise)
 # task: type of task, currently support "classification","regression","multilabel"
-def train(encoder, head, train_dataloader, valid_dataloader, total_epochs, early_stop=False, optimtype=torch.optim.RMSprop, lr=0.001, weight_decay=0.0, criterion=nn.CrossEntropyLoss(), auprc=False, save_encoder='encoder.pt', save_head='head.pt', modalnum=0, task='classification',track_complexity=True):
+def train(encoder, head, train_dataloader, valid_dataloader, total_epochs, early_stop=False, optimtype=torch.optim.RMSprop, lr=0.001, weight_decay=0.0, criterion=nn.CrossEntropyLoss(), auprc=False, save_encoder='encoder.pt', save_head='head.pt', modalnum=0, task='classification',track_complexity=True,head_only=False):
     def trainprocess():
         model = nn.Sequential(encoder, head)
-        op = optimtype(model.parameters(), lr=lr, weight_decay=weight_decay)
+        if head_only:
+            op = optimtype(head.parameters(),lr=lr, weight_decay=weight_decay)
+        else:
+            op = optimtype(model.parameters(), lr=lr, weight_decay=weight_decay)
         bestvalloss = 10000
         bestacc = 0
         bestf1 = 0
@@ -30,6 +33,7 @@ def train(encoder, head, train_dataloader, valid_dataloader, total_epochs, early
         for epoch in range(total_epochs):
             totalloss = 0.0
             totals = 0
+            model.train()
             for j in train_dataloader:
                 op.zero_grad()
                 out = model(j[modalnum].float().cuda())
@@ -154,12 +158,7 @@ def single_test(encoder, head, test_dataloader, auprc=False, modalnum=0, task='c
             return {'MSE': (totalloss / totals).item()}
 
 
-def test(encoder, head, test_dataloaders_all, dataset='default', method_name='My method', auprc=False, modalnum=0, task='classification', criterion=None,no_robust=False):
-    if no_robust:
-        def testprocess():
-            single_test(encoder,head,test_dataloaders_all,auprc,modalnum,task,criterion)
-        all_in_one_test(testprocess,[encoder,head])
-        return
+def test(encoder, head, test_dataloaders_all, dataset, method_name='My method', auprc=False, modalnum=0, task='classification', criterion=None):
     def testprocess():
         single_test(encoder, head, test_dataloaders_all[list(test_dataloaders_all.keys())[0]][0], auprc, modalnum, task, criterion)
     all_in_one_test(testprocess, [encoder, head])

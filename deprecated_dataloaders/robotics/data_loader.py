@@ -6,7 +6,7 @@ import torch.optim as optim
 import os
 from tqdm import tqdm
 
-from .utils import augment_val
+from datasets.robotics.utils import augment_val
 
 from datasets.robotics import ProcessForce, ToTensor
 from datasets.robotics import MultimodalManipulationDataset
@@ -129,4 +129,4 @@ def get_data(device, configs,filedirprefix="",unimodal=None,output='contact_next
     )
 
     print("Finished setting up date")
-    return dataloaders['train'], dataloaders['val']
+    return dataloaders['train'], dataloaders['val'], dataloaders['val']

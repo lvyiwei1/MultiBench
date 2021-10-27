@@ -19,10 +19,10 @@ from unimodals.robotics.encoders import (
 )
 from unimodals.common_models import MLP
 from unimodals.robotics.decoders import ContactDecoder
-from training_structures.Simple_Late_Fusion import train, test
+from deprecated_training_structures.Simple_Late_Fusion import train, test
 from robotics_utils import set_seeds
 from fusions.common_fusions import LowRankTensorFusion
-from datasets.robotics.data_loader import get_data
+from deprecated_dataloaders.robotics.data_loader import get_data
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import transforms
@@ -64,7 +64,7 @@ class selfsupervised:
         # losses
         self.loss_contact_next = nn.BCEWithLogitsLoss()
 
-        self.train_loader, self.val_loader = get_data(self.device, self.configs,"/home/pliang/multibench/MultiBench-robotics/")
+        self.train_loader, self.val_loader,_ = get_data(self.device, self.configs,"/home/pliang/multibench/MultiBench-robotics/")
 
     def train(self):
         print(len(self.train_loader.dataset), len(self.val_loader.dataset))
