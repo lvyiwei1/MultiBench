@@ -142,20 +142,22 @@ def glove_embeddings(text_data, vids, paddings=50):
 
 class Affectdataset(Dataset):
 
-    def __init__(self, data: Dict, flatten_time_series: bool, aligned: bool = True, task: str = None, max_pad=False, max_pad_num=50) -> None:
+    def __init__(self, data: Dict, flatten_time_series: bool, aligned: bool = True, task: str = None, max_pad=False, max_pad_num=50, fracs=1, repeats=1) -> None:
         self.dataset = data
         self.flatten = flatten_time_series
         self.aligned = aligned
         self.task = task
         self.max_pad = max_pad
         self.max_pad_num = max_pad_num
+        self.fracs=fracs
+        self.repeats=repeats
 
-    def __getitem__(self, ind):
+    def __getitem__(self, indd):
 
         # vision = torch.tensor(vision)
         # audio = torch.tensor(audio)
         # text = torch.tensor(text)
-
+        ind = indd % int(self.dataset['vision'].shape[0]*self.fracs)
         vision = torch.tensor(self.dataset['vision'][ind])
         audio = torch.tensor(self.dataset['audio'][ind])
         text = torch.tensor(self.dataset['text'][ind])
@@ -208,13 +210,13 @@ class Affectdataset(Dataset):
             return tmp
 
     def __len__(self):
-        return self.dataset['vision'].shape[0]
+        return int(self.dataset['vision'].shape[0]*self.fracs)*self.repeats
 
 
 def get_dataloader(
         filepath: str, batch_size: int = 32, max_seq_len=50, max_pad=False, train_shuffle: bool = True,
         num_workers: int = 2, flatten_time_series: bool = False, task=None, robust_test=True,
-        raw_path='/home/paul/MultiBench/mosi.hdf5',no_robust=False) -> DataLoader:
+        raw_path='/home/paul/MultiBench/mosi.hdf5',no_robust=False, fracs=1, repeats=1) -> DataLoader:
     with open(filepath, "rb") as f:
         alldata = pickle.load(f)
 
@@ -228,7 +230,7 @@ def get_dataloader(
     for dataset in alldata:
         processed_dataset[dataset] = alldata[dataset]
 
-    train = DataLoader(Affectdataset(processed_dataset['train'], flatten_time_series, task=task, max_pad=max_pad, max_pad_num=max_seq_len), \
+    train = DataLoader(Affectdataset(processed_dataset['train'], flatten_time_series, task=task, max_pad=max_pad, max_pad_num=max_seq_len,fracs=fracs, repeats=repeats), \
                        shuffle=train_shuffle, num_workers=num_workers, batch_size=batch_size, \
                        collate_fn=process)
     valid = DataLoader(Affectdataset(processed_dataset['valid'], flatten_time_series, task=task, max_pad=max_pad, max_pad_num=max_seq_len), \

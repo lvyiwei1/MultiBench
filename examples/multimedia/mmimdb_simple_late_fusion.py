@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.append(os.getcwd())
+sys.path.insert(1,os.getcwd())
 
 import torch
 
@@ -10,7 +10,7 @@ from datasets.imdb.get_data import get_dataloader
 from unimodals.common_models import Linear, MaxOut_MLP
 
 filename = "best_lf.pt"
-traindata, validdata, testdata = get_dataloader("../video/multimodal_imdb.hdf5", "../video/mmimdb", vgg=True, batch_size=128)
+traindata, validdata, testdata = get_dataloader("multimodal_imdb.hdf5", "../video/mmimdb", vgg=True, batch_size=128,skip_process=True)
 
 encoders=[MaxOut_MLP(512, 512, 300, linear_layer=False), MaxOut_MLP(512, 1024, 4096, 512, False)]
 head= Linear(1024, 23).cuda()

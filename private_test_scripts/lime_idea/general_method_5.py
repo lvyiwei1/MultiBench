@@ -11,9 +11,9 @@ def averageall(x):
     total=0.0
     count=0
     for i in x:
-        for j in i:
-            total += j
-            count += 1
+        #for j in i:
+        total += i
+        count += 1
     return total/count
 
 def torchstack(x,leng):
@@ -28,43 +28,43 @@ def repeatingunsqueeze(x,l):
     return x.repeat(l,1,1).unsqueeze(1).float().to(device)
 
 
-def make_classifier(model,orig_values,influenced_modalnum,fns,samplelist=False):
-    if samplelist:
-        def classify(inp):
-            return None
-    else:
-        def classify(inp):
-            #print(inp)
-            #print(inp.shape)
-            inlist=[]
-            for i in range(len(orig_values)):
-                if i == influenced_modalnum:
-                    inlist.append(fns[i](inp,len(inp)))
-                else:
-                    inlist.append(fns[i](orig_values[i],len(inp)))
-            out=model(inlist)
-            return F.softmax(out,dim=1).detach().cpu().numpy()
+def make_classifier(model,orig_values,influenced_modalnum,fns):
+    def classify(inp):
+        #print(inp)
+        #print(inp.shape)
+        inlist=[]
+        for i in range(len(orig_values)):
+            if i == influenced_modalnum:
+                inlist.append(fns[i](inp,len(inp)))
+            else:
+                inlist.append(fns[i](orig_values[i],len(inp)))
+        out=model(inlist)
+        return out.detach().cpu().numpy()
+        #return F.softmax(out,dim=1).detach().cpu().numpy()
     return classify
     
 def exptovec(exp,num_features):
         #print(exp)
         vals=exp
+        #print(num_features)
         vec=np.zeros(num_features)
         for idx,v in vals:
             vec[idx]=v
         return vec
 
 from scipy import spatial
-def runmethod2(model,explainer,influenced_modalnum,influencing_modalnum,points_of_interest,sampled_points,lime_samples,num_classes,fns,segmentor=None,preprocess=identity,numsegs=10,samplelist=False):
+def runmethod2(model,explainer,influenced_modalnum,influencing_modalnum,points_of_interest,sampled_points,lime_samples,num_classes,fns,segmentor=None,preprocess=identity,numsegs=10):
     records=[]
     segs=numsegs
     countpt = 0
+    
     for pt in points_of_interest:
         countpt += 1
         countsampled=0
-        records.append([])
+        #records.append([])
+        #print(pt)
         correct=pt[-1].item()
-        classify=make_classifier(model,pt[:-1],influenced_modalnum,fns,samplelist=samplelist)
+        classify=make_classifier(model,pt[:-1],influenced_modalnum,fns)
         point=preprocess(pt[influenced_modalnum])
         if segmentor==None:
             exp=explainer.explain_instance(point,classify,correct,lime_samples,num_classes)
@@ -72,10 +72,11 @@ def runmethod2(model,explainer,influenced_modalnum,influencing_modalnum,points_o
         else:
             explanation=explainer.explain_instance(point,classify,top_labels=num_classes,num_samples=lime_samples,hide_color=0,segmentation_fn=segmentor)
             exp=explanation.local_exp[correct]
-            segs=len(exp)
+            segs=100
             #print(exp)
             #print(len(explanation.segments))
             basevec=exptovec(exp,segs)
+        totalvec=0.0
         for sampled in sampled_points:
             countsampled += 1
             print("At pt "+str(countpt)+" sampled "+str(countsampled))
@@ -85,7 +86,7 @@ def runmethod2(model,explainer,influenced_modalnum,influencing_modalnum,points_o
                     ov.append(sampled[i])
                 else:
                     ov.append(pt[i])
-            classify=make_classifier(model,ov,influenced_modalnum,fns,samplelist=samplelist)
+            classify=make_classifier(model,ov,influenced_modalnum,fns)
             
             if segmentor==None:
                 exp=explainer.explain_instance(point,classify,correct,lime_samples,num_classes)    
@@ -94,9 +95,13 @@ def runmethod2(model,explainer,influenced_modalnum,influencing_modalnum,points_o
             else:
                 explanation=explainer.explain_instance(point,classify,top_labels=num_classes,num_samples=lime_samples,hide_color=0,segmentation_fn=segmentor)
                 exp=explanation.local_exp[correct]
+                #print(exp)
                 vec=exptovec(exp,segs)
-            dis=spatial.distance.cosine(basevec,vec)
-            records[-1].append(dis)
+            #dis=spatial.distance.cosine(basevec,vec)
+            #records[-1].append(dis)
+            totalvec = vec + totalvec
+        dis=spatial.distance.euclidean(basevec,totalvec/len(sampled_points))
+        records.append(dis)
     print("AVG: "+str(averageall(records)))
     return records
 import random
@@ -109,35 +114,28 @@ def sampling(dataloader,num,num_classes,class_balance=False, seed=0,totorch=True
     ret=[]
     for i in range(num_classes):
         classes.append(0)
-    if isinstance(dataloader,torch.utils.data.dataloader.DataLoader):
-        dataset=dataloader.dataset
-    else:
-        dataset=dataloader
+    dataset=dataloader.dataset
     #print(dataset)
     count=len(dataset)
     #print(count)
     random.seed(seed)
     indexes=random.sample(range(count),count)
-    curr=0
+    curr=1
     total=0
     orders=[]
     while total<num:
         index = indexes[curr]
         data=dataset[index]
         #print(data[0])
-        if class_balance:
-            label=int(data[-1])
-            if classes[label] < num//num_classes:
-                ret.append(data)
-                classes[label] +=1
-                total+=1
-                orders.append(index)
-        else:
-            orders.append(index)
+        label=data[-1]
+        if classes[label] < num//num_classes:
             ret.append(data)
-            total += 1
+            classes[label] +=1
+            total+=1
+            orders.append(index)
         curr += 1
- 
+        #print(ret[-1][0])
+        
     if totorch:
         rett=[[torch.FloatTensor(j) for j in i[:-1]] for i in ret]
         for i in range(len(ret)):

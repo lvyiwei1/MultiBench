@@ -7,7 +7,7 @@ sys.path.append('/home/pliang/multibench/MultiBench/datasets/imdb')
 from robustness.visual_robust import visual_robustness
 from robustness.text_robust import text_robustness
 
-from vgg import VGGClassifier
+#from vgg import VGGClassifier
 from gensim.models import KeyedVectors
 
 import h5py
@@ -81,6 +81,9 @@ def get_dataloader(path:str,test_path:str,num_workers:int=8, train_shuffle:bool=
         shuffle=train_shuffle, num_workers=num_workers, batch_size=batch_size)
     val_dataloader = DataLoader(IMDBDataset(path, 15552, 18160, vgg), \
         shuffle=False, num_workers=num_workers, batch_size=batch_size)
+    test_dataloader = DataLoader(IMDBDataset(path, 18160, 25959, vgg), \
+        shuffle=False, num_workers=num_workers, batch_size=batch_size)
+    return train_dataloader,val_dataloader,{'image':[test_dataloader],'text':[test_dataloader]}
 
     test_dataset = h5py.File(path, 'r')
     test_text = test_dataset['features'][18160:25959]

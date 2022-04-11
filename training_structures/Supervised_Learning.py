@@ -120,7 +120,8 @@ def train(
                 op.step()
             pred = torch.cat(pred, 0)
             true = torch.cat(true, 0)
-            acc=accuracy(true,pred)
+            #acc=accuracy(true,pred)
+            acc=0.0
             train_accs.append(acc)
             print("Epoch "+str(epoch)+" train loss: "+str(totalloss/totals)+" acc "+str(acc))
             validstarttime=time.time()

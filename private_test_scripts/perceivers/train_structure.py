@@ -1,7 +1,7 @@
 import torch
 
 
-def train(model,epochs,trains,valid,test,modalities,savedir,lr=0.001, optimizer=torch.optim.Adam, criterion=torch.nn.CrossEntropyLoss(),unsqueezing=True, device="cuda:0"):
+def train(model,epochs,trains,valid,test,modalities,savedir,lr=0.001, optimizer=torch.optim.Adam, criterion=torch.nn.CrossEntropyLoss(),unsqueezing=True, device="cuda:0",transposing=False):
     #for param in model.parameters():
     #    print(param)
     optim = optimizer(model.parameters(),lr=lr)
@@ -15,6 +15,8 @@ def train(model,epochs,trains,valid,test,modalities,savedir,lr=0.001, optimizer=
             for i in range(len(modalities)):
                 if unsqueezing:
                     indict[modalities[i]]=j[i].float().unsqueeze(-1).to(device)
+                elif transposing:
+                    indict[modalities[i]]=j[i].float().transpose(1,2).to(device)
                 else:
                     indict[modalities[i]]=j[i].float().to(device)
             for mod in indict:
@@ -37,6 +39,8 @@ def train(model,epochs,trains,valid,test,modalities,savedir,lr=0.001, optimizer=
                 for i in range(len(modalities)):
                     if unsqueezing:
                         indict[modalities[i]]=j[i].float().unsqueeze(-1).to(device)
+                    elif transposing:
+                        indict[modalities[i]]=j[i].float().transpose(1,2).to(device)
                     else:
                         indict[modalities[i]]=j[i].float().to(device)
                 out=model(indict)
@@ -62,6 +66,8 @@ def train(model,epochs,trains,valid,test,modalities,savedir,lr=0.001, optimizer=
             for i in range(0,len(modalities)):
                 if unsqueezing:
                     indict[modalities[i]]=j[i].float().unsqueeze(-1).to(device)
+                elif transposing:
+                    indict[modalities[i]]=j[i].float().transpose(1,2).to(device)
                 else:
                     indict[modalities[i]]=j[i].float().to(device)
             out=model(indict)

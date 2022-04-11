@@ -11,11 +11,11 @@ trains1,valid1,test1=get_dataloader(7,imputed_path='/home/paul/yiwei/im.pk',no_r
 from datasets.avmnist.get_data import get_dataloader
 trains2,valid2,test2=get_dataloader('/home/paul/yiwei/avmnist/_MFAS/avmnist',no_robust=True,unsqueeze_channel=False)
 from datasets.affect.get_data import get_dataloader
-trains3,valid3,test3=get_dataloader('/home/paul/MultiBench/mosei_senti_data.pkl',raw_path='/home/paul/MultiBench/mosei.hdf5',batch_size=16,no_robust=True,fracs=0.1,repeats=6)
+trains3,valid3,test3=get_dataloader('/home/paul/MultiBench/mosei_senti_data.pkl',raw_path='/home/paul/MultiBench/mosei.hdf5',batch_size=16,no_robust=True,fracs=0.2,repeats=3)
 from private_test_scripts.perceivers.humorloader import get_dataloader
 trains4,valid4,test4=get_dataloader(1,32,1)
 #trains4,valid4,test4=get_dataloader('/home/paul/MultiBench/mosi_raw.pkl',raw_path='/home/paul/MultiBench/mosi.hdf5',batch_size=3,no_robust=True)
-device='cuda:0'
+device='cuda:1'
 static_modality=InputModality(
     name='static',
     input_channels=1,
@@ -103,4 +103,4 @@ for i in range(5):
     model.to_logitslist=torch.nn.ModuleList([torch.nn.Sequential(torch.nn.LayerNorm(64),torch.nn.Linear(64,2)).to(device),torch.nn.Sequential(torch.nn.LayerNorm(64),torch.nn.Linear(64,10)).to(device),torch.nn.Sequential(torch.nn.LayerNorm(64),torch.nn.Linear(64,2)).to(device),torch.nn.Sequential(torch.nn.LayerNorm(64),torch.nn.Linear(64,2)).to(device)])
 
     from private_test_scripts.perceivers.train_structure_multitask import train
-    train(model,15,[trains1,trains2,trains3,trains4],[valid1,valid2,valid3,valid4],[test1,test2,test3,test4],[['static','timeseries'],['colorlessimage','audiospec'],['feature1','feature2','feature3'],['feature4','feature5','feature3']],'private_test_scripts/perceivers/fourmultitaskwithmosei.pt',lr=0.00005,device=device,train_weights=[2.2,1.9,20.0,6.0],is_affect=[False,False,True,False],unsqueezing=[True,True,False,False],transpose=[False,False,False,False],evalweights=[0,0,1,0])
+    train(model,15,[trains1,trains2,trains3,trains4],[valid1,valid2,valid3,valid4],[test1,test2,test3,test4],[['static','timeseries'],['colorlessimage','audiospec'],['feature1','feature2','feature3'],['feature4','feature5','feature3']],'temp/fourmultitaskwithmosei.pt',lr=0.00005,device=device,train_weights=[2.2,1.9,20.0,6.0],is_affect=[False,False,True,False],unsqueezing=[True,True,False,False],transpose=[False,False,False,False],evalweights=[0,0,1,0])

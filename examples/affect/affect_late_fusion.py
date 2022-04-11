@@ -34,7 +34,7 @@ head=MLP(820,400,2).cuda()
 
 fusion = Concat().cuda()
 
-train(encoders, fusion, head, traindata, validdata, 100, optimtype=torch.optim.AdamW, lr=1e-4, save='sarcasm_lf_best.pt', weight_decay=0.01)
+#train(encoders, fusion, head, traindata, validdata, 100, optimtype=torch.optim.AdamW, lr=1e-4, save='sarcasm_lf_best.pt', weight_decay=0.01)
 
 
 #all_in_one_train(trainprocess, all_modules)

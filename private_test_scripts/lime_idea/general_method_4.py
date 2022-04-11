@@ -6,7 +6,10 @@ import numpy as np
 #from datasets.avmnist.get_data import get_dataloader
 device='cuda:0'
 import  torch.nn.functional as F
+#from sklearn.preprocessing import normalize
 
+def unitize(x):
+    return x / np.linalg.norm(x)
 def averageall(x):
     total=0.0
     count=0
@@ -95,7 +98,7 @@ def runmethod2(model,explainer,influenced_modalnum,influencing_modalnum,points_o
                 explanation=explainer.explain_instance(point,classify,top_labels=num_classes,num_samples=lime_samples,hide_color=0,segmentation_fn=segmentor)
                 exp=explanation.local_exp[correct]
                 vec=exptovec(exp,segs)
-            dis=spatial.distance.cosine(basevec,vec)
+            dis=spatial.distance.euclidean(unitize(basevec),unitize(vec))
             records[-1].append(dis)
     print("AVG: "+str(averageall(records)))
     return records
@@ -118,26 +121,22 @@ def sampling(dataloader,num,num_classes,class_balance=False, seed=0,totorch=True
     #print(count)
     random.seed(seed)
     indexes=random.sample(range(count),count)
-    curr=0
+    curr=1
     total=0
     orders=[]
     while total<num:
         index = indexes[curr]
         data=dataset[index]
         #print(data[0])
-        if class_balance:
-            label=int(data[-1])
-            if classes[label] < num//num_classes:
-                ret.append(data)
-                classes[label] +=1
-                total+=1
-                orders.append(index)
-        else:
-            orders.append(index)
+        label=data[-1]
+        if classes[label] < num//num_classes:
             ret.append(data)
-            total += 1
+            classes[label] +=1
+            total+=1
+            orders.append(index)
         curr += 1
- 
+        #print(ret[-1][0])
+        
     if totorch:
         rett=[[torch.FloatTensor(j) for j in i[:-1]] for i in ret]
         for i in range(len(ret)):
